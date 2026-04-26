@@ -19,7 +19,6 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useVisualConfig } from '@/hooks/useVisualConfig';
 import { useNotificationStore, useAuthStore, useThemeStore, useConfigStore } from '@/stores';
 import { configFileApi } from '@/services/api/configFile';
-import styles from './ConfigPage.module.scss';
 
 type ConfigEditorTab = 'visual' | 'source';
 
@@ -139,7 +138,6 @@ export function ConfigPage() {
       setMergedYaml(latestContent);
       loadVisualValuesFromYaml(latestContent);
 
-      // Keep the global config store in sync so sidebar / other pages reflect YAML changes immediately.
       try {
         useConfigStore.getState().clearCache();
         await useConfigStore.getState().fetchConfig(undefined, true);
@@ -193,13 +191,9 @@ export function ConfigPage() {
         }
       }
 
-      // In source mode, save exactly what the user edited. In visual mode, materialize visual changes into the latest YAML.
       const nextMergedYaml =
         activeTab === 'source' ? content : applyVisualChangesToYaml(latestServerYaml);
 
-      // In visual mode, applyVisualChangesToYaml re-serializes YAML via parseDocument → toString,
-      // which may reformat comments/whitespace. Normalize the server YAML through the same pipeline
-      // so the diff only shows actual value changes, not cosmetic reformatting.
       let diffOriginal = latestServerYaml;
       if (activeTab !== 'source') {
         try {
@@ -241,7 +235,6 @@ export function ConfigPage() {
       if (tab === activeTab) return;
 
       if (tab === 'source') {
-        // Only rewrite YAML when there are pending visual changes; otherwise preserve raw YAML + comments.
         if (visualDirty) {
           const nextContent = applyVisualChangesToYaml(content);
           if (nextContent !== content) {
@@ -274,7 +267,6 @@ export function ConfigPage() {
     ]
   );
 
-  // Search functionality
   const performSearch = useCallback((query: string, direction: 'next' | 'prev' = 'next') => {
     if (!query || !editorRef.current?.view) return;
 
@@ -297,31 +289,26 @@ export function ConfigPage() {
       return;
     }
 
-    // Find current match based on cursor position
     const selection = view.state.selection.main;
     const cursorPos = direction === 'prev' ? selection.from : selection.to;
     let currentIndex = 0;
 
     if (direction === 'next') {
-      // Find next match after cursor
       for (let i = 0; i < matches.length; i++) {
         if (matches[i] > cursorPos) {
           currentIndex = i;
           break;
         }
-        // If no match after cursor, wrap to first
         if (i === matches.length - 1) {
           currentIndex = 0;
         }
       }
     } else {
-      // Find previous match before cursor
       for (let i = matches.length - 1; i >= 0; i--) {
         if (matches[i] < cursorPos) {
           currentIndex = i;
           break;
         }
-        // If no match before cursor, wrap to last
         if (i === 0) {
           currentIndex = matches.length - 1;
         }
@@ -331,7 +318,6 @@ export function ConfigPage() {
     const matchPos = matches[currentIndex];
     setSearchResults({ current: currentIndex + 1, total: matches.length });
 
-    // Scroll to and select the match
     view.dispatch({
       selection: { anchor: matchPos, head: matchPos + query.length },
       scrollIntoView: true,
@@ -341,7 +327,6 @@ export function ConfigPage() {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
-    // Do not auto-search on each keystroke. Clear previous results when query changes.
     if (!value) {
       setSearchResults({ current: 0, total: 0 });
       setLastSearchedQuery('');
@@ -379,32 +364,6 @@ export function ConfigPage() {
     performSearch(lastSearchedQuery, 'next');
   }, [lastSearchedQuery, performSearch]);
 
-  // Keep bottom floating actions from covering page content by syncing its height to a CSS variable.
-  useLayoutEffect(() => {
-    if (typeof window === 'undefined' || !shouldRenderFloatingActions) return;
-
-    const actionsEl = floatingActionsRef.current;
-    if (!actionsEl) return;
-
-    const updatePadding = () => {
-      const height = actionsEl.getBoundingClientRect().height;
-      document.documentElement.style.setProperty('--config-action-bar-height', `${height}px`);
-    };
-
-    updatePadding();
-    window.addEventListener('resize', updatePadding);
-
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updatePadding);
-    ro?.observe(actionsEl);
-
-    return () => {
-      ro?.disconnect();
-      window.removeEventListener('resize', updatePadding);
-      document.documentElement.style.removeProperty('--config-action-bar-height');
-    };
-  }, [shouldRenderFloatingActions]);
-
-  // Status text
   const getStatusText = () => {
     if (disableControls) return t('config_management.status_disconnected');
     if (loading) return t('config_management.status_loading');
@@ -415,28 +374,6 @@ export function ConfigPage() {
     if (saving) return t('config_management.status_saving');
     if (isDirty) return t('config_management.status_dirty');
     return t('config_management.status_loaded');
-  };
-
-  const getStatusClass = () => {
-    if (error || hasVisualModeError || hasVisualValidationErrors) return styles.error;
-    if (isDirty) return styles.modified;
-    if (!loading && !saving) return styles.saved;
-    return '';
-  };
-
-  const getFloatingStatusText = () => {
-    if (!isMobile) return getStatusText();
-    if (disableControls)
-      return t('config_management.status_disconnected_short', { defaultValue: 'Disconnected' });
-    if (loading) return t('config_management.status_loading_short', { defaultValue: 'Loading' });
-    if (error) return t('config_management.status_load_failed_short', { defaultValue: 'Failed' });
-    if (hasVisualModeError)
-      return t('config_management.visual_mode_unavailable_short', { defaultValue: 'YAML issue' });
-    if (hasVisualValidationErrors)
-      return t('config_management.visual.validation_blocked_short', { defaultValue: 'Fix errors' });
-    if (saving) return t('config_management.status_saving_short', { defaultValue: 'Saving' });
-    if (isDirty) return t('config_management.status_dirty_short', { defaultValue: 'Unsaved' });
-    return t('config_management.status_loaded_short', { defaultValue: 'Loaded' });
   };
 
   const handleReload = useCallback(() => {
@@ -457,49 +394,6 @@ export function ConfigPage() {
     });
   }, [isDirty, loadConfig, showConfirmation, t]);
 
-  const floatingActions = (
-    <div className={styles.floatingActionContainer} ref={floatingActionsRef}>
-      <div className={styles.floatingActionList}>
-        <div
-          className={`${styles.floatingStatus} ${
-            isMobile ? styles.floatingStatusCompact : ''
-          } ${getStatusClass()}`}
-        >
-          {getFloatingStatusText()}
-        </div>
-        <button
-          type="button"
-          className={styles.floatingActionButton}
-          onClick={handleReload}
-          disabled={loading || saving}
-          title={t('config_management.reload')}
-          aria-label={t('config_management.reload')}
-        >
-          <IconRefreshCw size={16} />
-        </button>
-        <button
-          type="button"
-          className={styles.floatingActionButton}
-          onClick={handleSave}
-          disabled={
-            disableControls ||
-            loading ||
-            saving ||
-            !isDirty ||
-            diffModalOpen ||
-            hasVisualModeError ||
-            hasVisualValidationErrors
-          }
-          title={t('config_management.save')}
-          aria-label={t('config_management.save')}
-        >
-          <IconCheck size={16} />
-          {isDirty && <span className={styles.dirtyDot} aria-hidden="true" />}
-        </button>
-      </div>
-    </div>
-  );
-
   const pageEyebrow =
     activeTab === 'visual'
       ? t('config_management.tabs.visual', { defaultValue: '可视化编辑' })
@@ -510,39 +404,45 @@ export function ConfigPage() {
       : t('config_management.description');
 
   return (
-    <div className={styles.container}>
-      <div className={styles.pageHeader}>
-        <div className={styles.pageHeaderCopy}>
-          <span className={styles.pageEyebrow}>{pageEyebrow}</span>
-          <h1 className={styles.pageTitle}>{t('config_management.title')}</h1>
-          <p className={styles.description}>{pageDescription}</p>
+    <div className="page-container">
+      <header className="section-header">
+        <p>{pageEyebrow}</p>
+        <h1>{t('config_management.title')}</h1>
+        <p style={{ fontSize: '16px' }}>{pageDescription}</p>
+      </header>
+
+      <div className="stack stack-lg">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <Button 
+                    variant={activeTab === 'visual' ? 'primary' : 'secondary'} 
+                    onClick={() => handleTabChange('visual')}
+                >
+                    {t('config_management.tabs.visual')}
+                </Button>
+                <Button 
+                    variant={activeTab === 'source' ? 'primary' : 'secondary'} 
+                    onClick={() => handleTabChange('source')}
+                >
+                    {t('config_management.tabs.source')}
+                </Button>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <Button variant="secondary" onClick={handleReload} disabled={loading || saving}>
+                    <IconRefreshCw size={16} />
+                </Button>
+                <Button 
+                    variant="primary" 
+                    onClick={handleSave} 
+                    disabled={disableControls || loading || saving || !isDirty || hasVisualModeError || hasVisualValidationErrors}
+                >
+                    {t('config_management.save')}
+                </Button>
+            </div>
         </div>
 
-        <div className={styles.pageMeta}>
-          <div className={`${styles.statusBadge} ${getStatusClass()}`}>{getStatusText()}</div>
-          <div className={styles.tabBar}>
-            <button
-              type="button"
-              className={`${styles.tabItem} ${activeTab === 'visual' ? styles.tabActive : ''}`}
-              onClick={() => handleTabChange('visual')}
-              disabled={saving || loading}
-            >
-              {t('config_management.tabs.visual', { defaultValue: '可视化编辑' })}
-            </button>
-            <button
-              type="button"
-              className={`${styles.tabItem} ${activeTab === 'source' ? styles.tabActive : ''}`}
-              onClick={() => handleTabChange('source')}
-              disabled={saving || loading}
-            >
-              {t('config_management.tabs.source', { defaultValue: '源代码编辑' })}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.workspaceShell}>
-        <div className={styles.content}>
+        <div className="card">
           {error && <div className="error-box">{error}</div>}
           {!error && visualParseError && (
             <div className="error-box">
@@ -559,70 +459,30 @@ export function ConfigPage() {
               onChange={setVisualValues}
             />
           ) : (
-            <div className={styles.sourceWorkspace}>
-              <div className={styles.sourceToolbar}>
-                <div className={styles.searchInputWrapper}>
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    placeholder={t('config_management.search_placeholder', {
-                      defaultValue: '搜索配置内容...',
-                    })}
-                    disabled={disableControls || loading}
-                    className={styles.searchInput}
-                    rightElement={
-                      <div className={styles.searchRight}>
-                        {searchQuery && lastSearchedQuery === searchQuery && (
-                          <span className={styles.searchCount}>
-                            {searchResults.total > 0
-                              ? `${searchResults.current} / ${searchResults.total}`
-                              : t('config_management.search_no_results', {
-                                  defaultValue: '无结果',
-                                })}
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          className={styles.searchButton}
-                          onClick={() => executeSearch('next')}
-                          disabled={!searchQuery || disableControls || loading}
-                          title={t('config_management.search_button', { defaultValue: '搜索' })}
-                        >
-                          <IconSearch size={16} />
-                        </button>
-                      </div>
-                    }
-                  />
-                </div>
-
-                <div className={styles.searchActions}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handlePrevMatch}
-                    disabled={
-                      !searchQuery || lastSearchedQuery !== searchQuery || searchResults.total === 0
-                    }
-                    title={t('config_management.search_prev', { defaultValue: '上一个' })}
-                  >
+            <div className="stack stack-md">
+              <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ flex: 1 }}>
+                    <Input
+                        value={searchQuery}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        onKeyDown={handleSearchKeyDown}
+                        placeholder={t('config_management.search_placeholder')}
+                        disabled={disableControls || loading}
+                        mono
+                    />
+                  </div>
+                  <Button variant="secondary" onClick={() => executeSearch('next')} disabled={!searchQuery}>
+                    <IconSearch size={16} />
+                  </Button>
+                  <Button variant="secondary" onClick={handlePrevMatch} disabled={!lastSearchedQuery}>
                     <IconChevronUp size={16} />
                   </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleNextMatch}
-                    disabled={
-                      !searchQuery || lastSearchedQuery !== searchQuery || searchResults.total === 0
-                    }
-                    title={t('config_management.search_next', { defaultValue: '下一个' })}
-                  >
+                  <Button variant="secondary" onClick={handleNextMatch} disabled={!lastSearchedQuery}>
                     <IconChevronDown size={16} />
                   </Button>
-                </div>
               </div>
 
-              <div className={styles.editorWrapper}>
+              <div style={{ height: '600px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                 <Suspense fallback={null}>
                   <LazyConfigSourceEditor
                     editorRef={editorRef}
@@ -639,9 +499,6 @@ export function ConfigPage() {
         </div>
       </div>
 
-      {shouldRenderFloatingActions && typeof document !== 'undefined'
-        ? createPortal(floatingActions, document.body)
-        : null}
       <DiffModal
         open={diffModalOpen}
         original={serverYaml}

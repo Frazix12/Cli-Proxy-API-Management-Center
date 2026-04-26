@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
@@ -28,7 +27,6 @@ import iconGlm from '@/assets/icons/glm.svg';
 import iconGrok from '@/assets/icons/grok.svg';
 import iconDeepseek from '@/assets/icons/deepseek.svg';
 import iconMinimax from '@/assets/icons/minimax.svg';
-import styles from './SystemPage.module.scss';
 
 const MODEL_CATEGORY_ICONS: Record<string, string | { light: string; dark: string }> = {
   gpt: { light: iconOpenaiLight, dark: iconOpenaiDark },
@@ -340,182 +338,148 @@ export function SystemPage() {
   }, [auth.connectionStatus, auth.apiBase]);
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.pageTitle}>{t('system_info.title')}</h1>
-      <div className={styles.content}>
-        <Card className={styles.aboutCard}>
-          <div className={styles.aboutHeader}>
-            <img src={INLINE_LOGO_JPEG} alt="CPAMC" className={styles.aboutLogo} />
-            <div className={styles.aboutTitle}>{t('system_info.about_title')}</div>
-          </div>
+    <div className="page-container">
+      <header className="section-header">
+        <h1>{t('system_info.title')}</h1>
+      </header>
+      
+      <div className="stack stack-xl">
+        <div className="card">
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                <img src={INLINE_LOGO_JPEG} alt="CPAMC" style={{ width: '64px', height: '64px', borderRadius: '12px' }} />
+                <div>
+                    <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{t('system_info.about_title')}</h2>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <span className="status-badge" onClick={handleInfoVersionTap} style={{ cursor: 'pointer' }}>App: {appVersion}</span>
+                        <span className="status-badge">API: {apiVersion}</span>
+                    </div>
+                </div>
+            </div>
 
-          <div className={styles.aboutInfoGrid}>
-            <button
-              type="button"
-              className={`${styles.infoTile} ${styles.tapTile}`}
-              onClick={handleInfoVersionTap}
-            >
-              <div className={styles.tileHeader}>
-                <div className={styles.tileLabel}>{t('footer.version')}</div>
-              </div>
-              <div className={styles.tileValue}>{appVersion}</div>
-            </button>
-
-            <div className={styles.infoTile}>
-              <div className={styles.tileHeader}>
-                <div className={styles.tileLabel}>{t('footer.api_version')}</div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className={styles.tileAction}
-                  onClick={() => void handleVersionCheck()}
-                  loading={checkingVersion}
-                  title={t('system_info.version_check_button')}
-                  aria-label={t('system_info.version_check_button')}
-                >
-                  {t('system_info.version_check_button')}
+            <div className="grid grid-2" style={{ marginTop: '32px' }}>
+                <div className="card card-nested">
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{t('footer.build_date')}</div>
+                    <div style={{ fontWeight: '600' }}>{buildTime}</div>
+                </div>
+                <div className="card card-nested">
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{t('connection.status')}</div>
+                    <div style={{ fontWeight: '600' }}>{t(`common.${auth.connectionStatus}_status`)}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>{auth.apiBase || '-'}</div>
+                </div>
+            </div>
+            
+            <div style={{ marginTop: '24px', textAlign: 'right' }}>
+                <Button variant="secondary" onClick={() => void handleVersionCheck()} loading={checkingVersion}>
+                    {t('system_info.version_check_button')}
                 </Button>
-              </div>
-              <div className={styles.tileValue}>{apiVersion}</div>
             </div>
+        </div>
 
-            <div className={styles.infoTile}>
-              <div className={styles.tileLabel}>{t('footer.build_date')}</div>
-              <div className={styles.tileValue}>{buildTime}</div>
-            </div>
-
-            <div className={styles.infoTile}>
-              <div className={styles.tileLabel}>{t('connection.status')}</div>
-              <div className={styles.tileValue}>{t(`common.${auth.connectionStatus}_status`)}</div>
-              <div className={styles.tileSub}>{auth.apiBase || '-'}</div>
-            </div>
-          </div>
-        </Card>
-
-        <Card title={t('system_info.quick_links_title')}>
-          <p className={styles.sectionDescription}>{t('system_info.quick_links_desc')}</p>
-          <div className={styles.quickLinks}>
-            <a
-              href="https://github.com/router-for-me/CLIProxyAPI"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.linkCard}
-            >
-              <div className={`${styles.linkIcon} ${styles.github}`}>
-                <IconGithub size={22} />
-              </div>
-              <div className={styles.linkContent}>
-                <div className={styles.linkTitle}>
-                  {t('system_info.link_main_repo')}
-                  <IconExternalLink size={14} />
+        <div className="card">
+          <header className="card-header">
+            <span className="title">{t('system_info.quick_links_title')}</span>
+          </header>
+          <div className="grid grid-3">
+            <a href="https://github.com/router-for-me/CLIProxyAPI" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                <div className="card card-nested" style={{ height: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        <IconGithub size={20} />
+                        {t('system_info.link_main_repo')}
+                        <IconExternalLink size={14} />
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>{t('system_info.link_main_repo_desc')}</div>
                 </div>
-                <div className={styles.linkDesc}>{t('system_info.link_main_repo_desc')}</div>
-              </div>
             </a>
 
-            <a
-              href="https://github.com/router-for-me/Cli-Proxy-API-Management-Center"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.linkCard}
-            >
-              <div className={`${styles.linkIcon} ${styles.github}`}>
-                <IconCode size={22} />
-              </div>
-              <div className={styles.linkContent}>
-                <div className={styles.linkTitle}>
-                  {t('system_info.link_webui_repo')}
-                  <IconExternalLink size={14} />
+            <a href="https://github.com/router-for-me/Cli-Proxy-API-Management-Center" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                <div className="card card-nested" style={{ height: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        <IconCode size={20} />
+                        {t('system_info.link_webui_repo')}
+                        <IconExternalLink size={14} />
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>{t('system_info.link_webui_repo_desc')}</div>
                 </div>
-                <div className={styles.linkDesc}>{t('system_info.link_webui_repo_desc')}</div>
-              </div>
             </a>
 
-            <a
-              href="https://help.router-for.me/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.linkCard}
-            >
-              <div className={`${styles.linkIcon} ${styles.docs}`}>
-                <IconBookOpen size={22} />
-              </div>
-              <div className={styles.linkContent}>
-                <div className={styles.linkTitle}>
-                  {t('system_info.link_docs')}
-                  <IconExternalLink size={14} />
+            <a href="https://help.router-for.me/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                <div className="card card-nested" style={{ height: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        <IconBookOpen size={20} />
+                        {t('system_info.link_docs')}
+                        <IconExternalLink size={14} />
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>{t('system_info.link_docs_desc')}</div>
                 </div>
-                <div className={styles.linkDesc}>{t('system_info.link_docs_desc')}</div>
-              </div>
             </a>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          title={t('system_info.models_title')}
-          extra={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => fetchModels({ forceRefresh: true })}
-              loading={modelsLoading}
-            >
+        <div className="card">
+          <header className="card-header">
+            <span className="title">{t('system_info.models_title')}</span>
+            <Button variant="secondary" size="sm" onClick={() => fetchModels({ forceRefresh: true })} loading={modelsLoading}>
               {t('common.refresh')}
             </Button>
-          }
-        >
-          <p className={styles.sectionDescription}>{t('system_info.models_desc')}</p>
-          {modelStatus && (
-            <div className={`status-badge ${modelStatus.type}`}>{modelStatus.message}</div>
-          )}
-          {modelsError && <div className="error-box">{modelsError}</div>}
-          {modelsLoading ? (
-            <div className="hint">{t('common.loading')}</div>
-          ) : models.length === 0 ? (
-            <div className="hint">{t('system_info.models_empty')}</div>
-          ) : (
-            <div className="item-list">
-              {groupedModels.map((group) => {
-                const iconSrc = getIconForCategory(group.id);
-                return (
-                  <div key={group.id} className="item-row">
-                    <div className="item-meta">
-                      <div className={styles.groupTitle}>
-                        {iconSrc && <img src={iconSrc} alt="" className={styles.groupIcon} />}
-                        <span className="item-title">{group.label}</span>
+          </header>
+          
+          <div className="stack stack-md">
+              {modelStatus && (
+                <div className={`status-badge ${modelStatus.type}`}>{modelStatus.message}</div>
+              )}
+              {modelsError && <div className="error-box">{modelsError}</div>}
+              {modelsLoading ? (
+                <div className="hint">{t('common.loading')}</div>
+              ) : models.length === 0 ? (
+                <div className="hint">{t('system_info.models_empty')}</div>
+              ) : (
+                <div className="stack stack-md">
+                  {groupedModels.map((group) => {
+                    const iconSrc = getIconForCategory(group.id);
+                    return (
+                      <div key={group.id} className="card card-nested">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', marginBottom: '12px' }}>
+                            {iconSrc && <img src={iconSrc} alt="" style={{ width: '20px', height: '20px' }} />}
+                            {group.label}
+                            <span style={{ fontSize: '12px', fontWeight: '400', color: 'var(--text-tertiary)' }}>({group.items.length})</span>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {group.items.map((model) => (
+                            <span 
+                              key={`${model.name}-${model.alias ?? 'default'}`} 
+                              className="status-badge" 
+                              title={model.description || ''}
+                              style={{ 
+                                fontSize: '12px', 
+                                padding: '4px 10px',
+                                background: 'var(--bg-secondary)',
+                                color: 'var(--text-primary)',
+                                borderRadius: '8px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              {model.name}
+                              {model.alias && <span style={{ opacity: 0.6, marginLeft: '6px', fontSize: '11px' }}>({model.alias})</span>}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                      <div className="item-subtitle">
-                        {t('system_info.models_count', { count: group.items.length })}
-                      </div>
-                    </div>
-                    <div className={styles.modelTags}>
-                      {group.items.map((model) => (
-                        <span
-                          key={`${model.name}-${model.alias ?? 'default'}`}
-                          className={styles.modelTag}
-                          title={model.description || ''}
-                        >
-                          <span className={styles.modelName}>{model.name}</span>
-                          {model.alias && <span className={styles.modelAlias}>{model.alias}</span>}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-
-        <Card title={t('system_info.clear_login_title')}>
-          <p className={styles.sectionDescription}>{t('system_info.clear_login_desc')}</p>
-          <div className={styles.clearLoginActions}>
-            <Button variant="danger" onClick={handleClearLoginStorage}>
-              {t('system_info.clear_login_button')}
-            </Button>
+                    );
+                  })}
+                </div>
+              )}
           </div>
-        </Card>
+        </div>
+
+        <div className="card" style={{ borderColor: 'var(--error-color)' }}>
+          <header className="card-header">
+            <span className="title" style={{ color: 'var(--error-color)' }}>{t('system_info.clear_login_title')}</span>
+          </header>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>{t('system_info.clear_login_desc')}</p>
+          <Button variant="danger" onClick={handleClearLoginStorage}>
+            {t('system_info.clear_login_button')}
+          </Button>
+        </div>
       </div>
 
       <Modal
@@ -537,11 +501,10 @@ export function SystemPage() {
           </>
         }
       >
-        <div className="request-log-modal">
+        <div className="stack stack-md">
           <div className="status-badge warning">{t('basic_settings.request_log_warning')}</div>
           <ToggleSwitch
             label={t('basic_settings.request_log_enable')}
-            labelPosition="left"
             checked={requestLogDraft}
             disabled={!canEditRequestLog || requestLogSaving}
             onChange={(value) => {

@@ -116,6 +116,10 @@ export function StatCards({ usage, loading, modelPrices, nowMs, sparklines }: St
     });
 
     const denominator = windowMinutes > 0 ? windowMinutes : 1;
+    
+    // Calculate total cost for the ENTIRE filtered usage period, not just the 30m window
+    const grandTotalCost = details.reduce((sum, detail) => sum + calculateCost(detail, modelPrices), 0);
+
     return {
       tokenBreakdown: { cachedTokens, reasoningTokens },
       rateStats: {
@@ -125,10 +129,10 @@ export function StatCards({ usage, loading, modelPrices, nowMs, sparklines }: St
         requestCount,
         tokenCount,
       },
-      totalCost,
+      totalCost: grandTotalCost,
       latencyStats,
     };
-  }, [hasPrices, modelPrices, nowMs, usage]);
+  }, [modelPrices, nowMs, usage]);
 
   const statsCards: StatCardData[] = [
     {

@@ -16,10 +16,6 @@ interface ProviderListProps<T> {
   actionsDisabled?: boolean;
   getRowDisabled?: (item: T, index: number) => boolean;
   renderExtraActions?: (item: T, index: number) => ReactNode;
-  listClassName?: string;
-  rowClassName?: string;
-  metaClassName?: string;
-  actionsClassName?: string;
 }
 
 export function ProviderList<T>({
@@ -35,10 +31,6 @@ export function ProviderList<T>({
   actionsDisabled = false,
   getRowDisabled,
   renderExtraActions,
-  listClassName,
-  rowClassName,
-  metaClassName,
-  actionsClassName,
 }: ProviderListProps<T>) {
   const { t } = useTranslation();
 
@@ -51,17 +43,21 @@ export function ProviderList<T>({
   }
 
   return (
-    <div className={listClassName ?? 'item-list'}>
+    <div className="stack stack-lg">
       {items.map((item, index) => {
         const rowDisabled = getRowDisabled ? getRowDisabled(item, index) : false;
         return (
           <div
             key={keyField(item, index)}
-            className={rowClassName ?? 'item-row'}
-            style={rowDisabled ? { opacity: 0.6 } : undefined}
+            style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '16px',
+                opacity: rowDisabled ? 0.6 : 1,
+            }}
           >
-            <div className={metaClassName ?? 'item-meta'}>{renderContent(item, index)}</div>
-            <div className={actionsClassName ?? 'item-actions'}>
+            <div>{renderContent(item, index)}</div>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <Button
                 variant="secondary"
                 size="sm"
@@ -80,6 +76,7 @@ export function ProviderList<T>({
               </Button>
               {renderExtraActions ? renderExtraActions(item, index) : null}
             </div>
+            {index < items.length - 1 && <hr style={{ border: 'none', borderBottom: '1px solid var(--border-color)', margin: '8px 0' }} />}
           </div>
         );
       })}

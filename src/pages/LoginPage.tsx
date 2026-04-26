@@ -12,17 +12,12 @@ import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
 import { isSupportedLanguage } from '@/utils/language';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import type { ApiError } from '@/types';
-import styles from './LoginPage.module.scss';
 
-/**
- * 将 API 错误转换为本地化的用户友好消息
- */
 type RedirectState = { from?: { pathname?: string } };
 
 function getLocalizedErrorMessage(error: unknown, t: (key: string) => string): string {
   const apiError = error as Partial<ApiError>;
   const status = typeof apiError.status === 'number' ? apiError.status : undefined;
-  const code = typeof apiError.code === 'string' ? apiError.code : undefined;
   const message =
     error instanceof Error
       ? error.message
@@ -32,38 +27,12 @@ function getLocalizedErrorMessage(error: unknown, t: (key: string) => string): s
           ? error
           : '';
 
-  // 根据 HTTP 状态码判断
-  if (status === 401) {
-    return t('login.error_unauthorized');
-  }
-  if (status === 403) {
-    return t('login.error_forbidden');
-  }
-  if (status === 404) {
-    return t('login.error_not_found');
-  }
-  if (status && status >= 500) {
-    return t('login.error_server');
-  }
+  if (status === 401) return t('login.error_unauthorized');
+  if (status === 403) return t('login.error_forbidden');
+  if (status === 404) return t('login.error_not_found');
+  if (status && status >= 500) return t('login.error_server');
 
-  // 根据 axios 错误码判断
-  if (code === 'ECONNABORTED' || message.toLowerCase().includes('timeout')) {
-    return t('login.error_timeout');
-  }
-  if (code === 'ERR_NETWORK' || message.toLowerCase().includes('network error')) {
-    return t('login.error_network');
-  }
-  if (code === 'ERR_CERT_AUTHORITY_INVALID' || message.toLowerCase().includes('certificate')) {
-    return t('login.error_ssl');
-  }
-
-  // 检查 CORS 错误
-  if (message.toLowerCase().includes('cors') || message.toLowerCase().includes('cross-origin')) {
-    return t('login.error_cors');
-  }
-
-  // 默认错误消息
-  return t('login.error_invalid');
+  return t('login.error_invalid') || message;
 }
 
 export function LoginPage() {
@@ -99,11 +68,10 @@ export function LoginPage() {
       })),
     [t]
   );
+
   const handleLanguageChange = useCallback(
     (selectedLanguage: string) => {
-      if (!isSupportedLanguage(selectedLanguage)) {
-        return;
-      }
+      if (!isSupportedLanguage(selectedLanguage)) return;
       setLanguage(selectedLanguage);
     },
     [setLanguage]
@@ -115,26 +83,21 @@ export function LoginPage() {
         const autoLoggedIn = await restoreSession();
         if (autoLoggedIn) {
           setAutoLoginSuccess(true);
-          // 延迟跳转，让用户看到成功动画
           setTimeout(() => {
             const redirect = (location.state as RedirectState | null)?.from?.pathname || '/';
             navigate(redirect, { replace: true });
-          }, 1500);
+          }, 1000);
         } else {
           setApiBase(storedBase || detectedBase);
           setManagementKey(storedKey || '');
           setRememberPassword(storedRememberPassword || Boolean(storedKey));
         }
       } finally {
-        if (!autoLoginSuccess) {
-          setAutoLoading(false);
-        }
+        setAutoLoading(false);
       }
     };
-
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [restoreSession, navigate, location.state, storedBase, detectedBase, storedKey, storedRememberPassword]);
 
   const handleSubmit = useCallback(async () => {
     if (!managementKey.trim()) {
@@ -177,82 +140,44 @@ export function LoginPage() {
     return <Navigate to={redirect} replace />;
   }
 
-  // 显示启动动画（自动登录中或自动登录成功）
-  const showSplash = autoLoading || autoLoginSuccess;
-
   return (
-    <div className={styles.container}>
-      {/* 左侧品牌展示区 */}
-      <div className={styles.brandPanel}>
-        <div className={styles.brandContent}>
-          <span className={styles.brandWord}>CLI</span>
-          <span className={styles.brandWord}>PROXY</span>
-          <span className={styles.brandWord}>API</span>
-        </div>
-      </div>
+    <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: 'var(--bg-secondary)',
+        padding: '24px'
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+        <header className="card-header" style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <img src={INLINE_LOGO_JPEG} alt="Logo" style={{ width: '48px', height: '48px', borderRadius: '8px', marginBottom: '16px' }} />
+          <h1 className="title">{t('title.login')}</h1>
+          <p className="subtitle">{t('login.subtitle')}</p>
+        </header>
 
-      {/* 右侧功能交互区 */}
-      <div className={styles.formPanel}>
-        {showSplash ? (
-          /* 启动动画 */
-          <div className={styles.splashContent}>
-            <img src={INLINE_LOGO_JPEG} alt="CPAMC" className={styles.splashLogo} />
-            <h1 className={styles.splashTitle}>{t('splash.title')}</h1>
-            <p className={styles.splashSubtitle}>{t('splash.subtitle')}</p>
-            <div className={styles.splashLoader}>
-              <div className={styles.splashLoaderBar} />
-            </div>
-          </div>
-        ) : (
-          /* 登录表单 */
-          <div className={styles.formContent}>
-            {/* Logo */}
-            <img src={INLINE_LOGO_JPEG} alt="Logo" className={styles.logo} />
-
-            {/* 登录表单卡片 */}
-            <div className={styles.loginCard}>
-              <div className={styles.loginHeader}>
-                <div className={styles.titleRow}>
-                  <div className={styles.title}>{t('title.login')}</div>
-                  <Select
-                    className={styles.languageSelect}
-                    value={language}
-                    options={languageOptions}
-                    onChange={handleLanguageChange}
-                    fullWidth={false}
-                    ariaLabel={t('language.switch')}
-                  />
+        <div className="stack stack-lg">
+            <div className="stack stack-xs">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '600' }}>{t('login.connection_current')}</span>
+                    <Button variant="ghost" size="sm" onClick={() => setShowCustomBase(!showCustomBase)}>
+                        {t('login.custom_connection_label')}
+                    </Button>
                 </div>
-                <div className={styles.subtitle}>{t('login.subtitle')}</div>
-              </div>
+                {!showCustomBase ? (
+                    <div className="card card-nested" style={{ fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                        {apiBase || detectedBase}
+                    </div>
+                ) : (
+                    <Input
+                        placeholder={t('login.custom_connection_placeholder')}
+                        value={apiBase}
+                        onChange={(e) => setApiBase(e.target.value)}
+                    />
+                )}
+            </div>
 
-              <div className={styles.connectionBox}>
-                <div className={styles.label}>{t('login.connection_current')}</div>
-                <div className={styles.value}>{apiBase || detectedBase}</div>
-                <div className={styles.hint}>{t('login.connection_auto_hint')}</div>
-              </div>
-
-              <div className={styles.toggleAdvanced}>
-                <SelectionCheckbox
-                  checked={showCustomBase}
-                  onChange={setShowCustomBase}
-                  ariaLabel={t('login.custom_connection_label')}
-                  label={t('login.custom_connection_label')}
-                  labelClassName={styles.toggleLabel}
-                />
-              </div>
-
-              {showCustomBase && (
-                <Input
-                  label={t('login.custom_connection_label')}
-                  placeholder={t('login.custom_connection_placeholder')}
-                  value={apiBase}
-                  onChange={(e) => setApiBase(e.target.value)}
-                  hint={t('login.custom_connection_hint')}
-                />
-              )}
-
-              <Input
+            <Input
                 autoFocus
                 label={t('login.management_key_label')}
                 placeholder={t('login.management_key_placeholder')}
@@ -260,45 +185,29 @@ export function LoginPage() {
                 value={managementKey}
                 onChange={(e) => setManagementKey(e.target.value)}
                 onKeyDown={handleSubmitKeyDown}
-                rightElement={
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => setShowKey((prev) => !prev)}
-                    aria-label={
-                      showKey
-                        ? t('login.hide_key', { defaultValue: '隐藏密钥' })
-                        : t('login.show_key', { defaultValue: '显示密钥' })
-                    }
-                    title={
-                      showKey
-                        ? t('login.hide_key', { defaultValue: '隐藏密钥' })
-                        : t('login.show_key', { defaultValue: '显示密钥' })
-                    }
-                  >
-                    {showKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-                  </button>
-                }
-              />
+            />
 
-              <div className={styles.toggleAdvanced}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <SelectionCheckbox
-                  checked={rememberPassword}
-                  onChange={setRememberPassword}
-                  ariaLabel={t('login.remember_password_label')}
-                  label={t('login.remember_password_label')}
-                  labelClassName={styles.toggleLabel}
+                    checked={rememberPassword}
+                    onChange={setRememberPassword}
+                    label={t('login.remember_password_label')}
                 />
-              </div>
-
-              <Button fullWidth onClick={handleSubmit} loading={loading}>
-                {loading ? t('login.submitting') : t('login.submit_button')}
-              </Button>
-
-              {error && <div className={styles.errorBox}>{error}</div>}
+                
+                <Select
+                    value={language}
+                    options={languageOptions}
+                    onChange={handleLanguageChange}
+                    fullWidth={false}
+                />
             </div>
-          </div>
-        )}
+
+            <Button fullWidth onClick={handleSubmit} loading={loading} variant="primary">
+                {loading ? t('login.submitting') : t('login.submit_button')}
+            </Button>
+
+            {error && <div className="error-box">{error}</div>}
+        </div>
       </div>
     </div>
   );

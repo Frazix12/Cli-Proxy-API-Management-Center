@@ -159,6 +159,22 @@ export function AiProvidersOpenAIModelsPage() {
     });
   }, [visibleModelNames]);
 
+  const handleOpenRouterFetch = useCallback(async () => {
+    setFetching(true);
+    setError('');
+    try {
+      const list = await modelsApi.fetchOpenRouterModels();
+      setModels(list.map((m: any) => ({
+        name: m.name,
+        description: m.description || `Prompt: ${m.pricing?.prompt}/1k, Completion: ${m.pricing?.completion}/1k`,
+      })));
+    } catch (err: unknown) {
+      setError(`${t('ai_providers.openai_models_fetch_error')}: ${getErrorMessage(err)}`);
+    } finally {
+      setFetching(false);
+    }
+  }, [t]);
+
   const handleClearSelection = useCallback(() => {
     setSelected(new Set());
   }, []);
@@ -228,6 +244,17 @@ export function AiProvidersOpenAIModelsPage() {
               >
                 {t('ai_providers.openai_models_fetch_refresh')}
               </Button>
+              {form.baseUrl.includes('openrouter.ai') && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleOpenRouterFetch}
+                  loading={fetching}
+                  disabled={disableControls || saving}
+                >
+                  Fetch OpenRouter Models & Pricing
+                </Button>
+              )}
             </div>
           </div>
           <Input

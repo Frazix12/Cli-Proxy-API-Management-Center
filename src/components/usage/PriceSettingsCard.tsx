@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
+import { modelsApi } from '@/services/api';
 import type { ModelPrice } from '@/utils/usage';
 import styles from '@/pages/UsagePage.module.scss';
 
@@ -52,6 +53,12 @@ export function PriceSettingsCard({
     onPricesChange(newPrices);
   };
 
+  const handleDeleteAllPrices = () => {
+    if (window.confirm('Are you sure you want to delete all saved model prices?')) {
+      onPricesChange({});
+    }
+  };
+
   const handleOpenEdit = (model: string) => {
     const price = modelPrices[model];
     setEditModel(model);
@@ -84,6 +91,63 @@ export function PriceSettingsCard({
     }
   };
 
+  const [fetching, setFetching] = useState(false);
+  const handleAutoFetchOpenRouter = useCallback(async () => {
+    setFetching(true);
+    try {
+      const list = await modelsApi.fetchOpenRouterModels();
+      const newPrices = { ...modelPrices };
+      
+      // Only process models that appear in the usage statistics
+      modelNames.forEach(localName => {
+        const local = localName.toLowerCase();
+        
+        // Find the best match in OpenRouter list
+        // Sort matches to prioritize exactness
+        const matches = list.filter((m: any) => {
+          const id = m.name.toLowerCase();
+          const afterSlash = id.split('/').pop() || '';
+          
+          return id === local || 
+                 afterSlash === local || 
+                 afterSlash.startsWith(local) || 
+                 local.startsWith(afterSlash);
+        });
+
+        if (matches.length > 0) {
+          // Sort priorities: Exact ID > After Slash Match > After Slash Starts With > Others
+          matches.sort((a: any, b: any) => {
+            const idA = a.name.toLowerCase();
+            const idB = b.name.toLowerCase();
+            const sA = idA.split('/').pop() || '';
+            const sB = idB.split('/').pop() || '';
+
+            if (idA === local) return -1;
+            if (idB === local) return 1;
+            if (sA === local) return -1;
+            if (sB === local) return 1;
+            return sA.length - sB.length; // Prefer shorter match for "startsWith" cases
+          });
+
+          const bestMatch = matches[0];
+          if (bestMatch.pricing) {
+            newPrices[localName] = {
+              prompt: parseFloat(bestMatch.pricing.prompt) * 1000000,
+              completion: parseFloat(bestMatch.pricing.completion) * 1000000,
+              cache: (parseFloat(bestMatch.pricing.request) || parseFloat(bestMatch.pricing.prompt)) * 1000000,
+            };
+          }
+        }
+      });
+
+      onPricesChange(newPrices);
+    } catch (err) {
+      console.error('Failed to fetch OpenRouter prices', err);
+    } finally {
+      setFetching(false);
+    }
+  }, [modelNames, modelPrices, onPricesChange]);
+
   const options = useMemo(
     () => [
       { value: '', label: t('usage_stats.model_price_select_placeholder') },
@@ -93,7 +157,19 @@ export function PriceSettingsCard({
   );
 
   return (
-    <Card title={t('usage_stats.model_price_settings')}>
+    <Card 
+        title={t('usage_stats.model_price_settings')}
+        extra={
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <Button variant="danger" size="sm" onClick={handleDeleteAllPrices} disabled={Object.keys(modelPrices).length === 0}>
+                    Delete All Prices
+                </Button>
+                <Button variant="secondary" size="sm" onClick={handleAutoFetchOpenRouter} loading={fetching}>
+                    Auto-fill OpenRouter Prices
+                </Button>
+            </div>
+        }
+    >
       <div className={styles.pricingSection}>
         {/* Price Form */}
         <div className={styles.priceForm}>

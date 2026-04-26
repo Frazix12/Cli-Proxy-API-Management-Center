@@ -5,9 +5,10 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string;
   error?: string;
   rightElement?: ReactNode;
+  mono?: boolean;
 }
 
-export function Input({ label, hint, error, rightElement, className = '', id, ...rest }: InputProps) {
+export function Input({ label, hint, error, rightElement, className = '', id, mono, ...rest }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const hintId = hint ? `${inputId}-hint` : undefined;
@@ -20,7 +21,7 @@ export function Input({ label, hint, error, rightElement, className = '', id, ..
       <div style={{ position: 'relative' }}>
         <input
           id={inputId}
-          className={`input ${className}`.trim()}
+          className={`input ${mono ? 'font-mono' : ''} ${className}`.trim()}
           aria-invalid={Boolean(error) || rest['aria-invalid']}
           aria-describedby={describedBy}
           {...rest}

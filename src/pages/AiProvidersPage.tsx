@@ -21,7 +21,6 @@ import { ampcodeApi, providersApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore, useThemeStore } from '@/stores';
 import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
 import { indexUsageDetailsByAuthIndex, indexUsageDetailsBySource } from '@/utils/usageIndex';
-import styles from './AiProvidersPage.module.scss';
 
 export function AiProvidersPage() {
   const { t } = useTranslation();
@@ -379,9 +378,12 @@ export function AiProvidersPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.pageTitle}>{t('ai_providers.title')}</h1>
-      <div className={styles.content}>
+    <div className="page-container">
+      <header className="section-header">
+        <h1>{t('ai_providers.title')}</h1>
+      </header>
+      
+      <div className="stack stack-xl">
         {error && <div className="error-box">{error}</div>}
 
         <div id="provider-gemini">

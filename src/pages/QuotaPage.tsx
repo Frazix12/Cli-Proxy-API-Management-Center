@@ -16,7 +16,6 @@ import {
   KIMI_CONFIG
 } from '@/components/quota';
 import type { AuthFileItem } from '@/types';
-import styles from './QuotaPage.module.scss';
 
 export function QuotaPage() {
   const { t } = useTranslation();
@@ -63,44 +62,46 @@ export function QuotaPage() {
   }, [loadFiles, loadConfig]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('quota_management.title')}</h1>
-        <p className={styles.description}>{t('quota_management.description')}</p>
+    <div className="page-container">
+      <header className="section-header">
+        <h1>{t('quota_management.title')}</h1>
+        <p>{t('quota_management.description')}</p>
+      </header>
+
+      <div className="stack stack-xl">
+        {error && <div className="error-box">{error}</div>}
+
+        <QuotaSection
+            config={CLAUDE_CONFIG}
+            files={files}
+            loading={loading}
+            disabled={disableControls}
+        />
+        <QuotaSection
+            config={ANTIGRAVITY_CONFIG}
+            files={files}
+            loading={loading}
+            disabled={disableControls}
+        />
+        <QuotaSection
+            config={CODEX_CONFIG}
+            files={files}
+            loading={loading}
+            disabled={disableControls}
+        />
+        <QuotaSection
+            config={GEMINI_CLI_CONFIG}
+            files={files}
+            loading={loading}
+            disabled={disableControls}
+        />
+        <QuotaSection
+            config={KIMI_CONFIG}
+            files={files}
+            loading={loading}
+            disabled={disableControls}
+        />
       </div>
-
-      {error && <div className={styles.errorBox}>{error}</div>}
-
-      <QuotaSection
-        config={CLAUDE_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-      />
-      <QuotaSection
-        config={ANTIGRAVITY_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-      />
-      <QuotaSection
-        config={CODEX_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-      />
-      <QuotaSection
-        config={GEMINI_CLI_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-      />
-      <QuotaSection
-        config={KIMI_CONFIG}
-        files={files}
-        loading={loading}
-        disabled={disableControls}
-      />
     </div>
   );
 }

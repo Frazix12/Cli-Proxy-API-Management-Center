@@ -166,6 +166,19 @@ export const modelsApi = {
     return normalizeModelList(payload, { dedupe: true });
   },
 
+  async fetchOpenRouterModels() {
+    const url = 'https://openrouter.ai/api/v1/models';
+    const response = await axios.get(url);
+    const data = response.data?.data || [];
+    return data.map((m: any) => ({
+      name: m.id,
+      description: m.description,
+      pricing: m.pricing,
+      context_length: m.context_length,
+      architecture: m.architecture
+    }));
+  },
+
   buildV1ModelsEndpoint(baseUrl: string) {
     return buildV1ModelsEndpoint(baseUrl);
   },
