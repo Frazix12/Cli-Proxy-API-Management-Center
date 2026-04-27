@@ -160,13 +160,14 @@ export function AiProvidersOpenAIModelsPage() {
   }, [visibleModelNames]);
 
   const handleOpenRouterFetch = useCallback(async () => {
+    setModels([]);
     setFetching(true);
     setError('');
     try {
       const list = await modelsApi.fetchOpenRouterModels();
       setModels(list.map((m: any) => ({
-        name: m.name,
-        description: m.description || `Prompt: ${m.pricing?.prompt}/1k, Completion: ${m.pricing?.completion}/1k`,
+        name: m.id || m.name,
+        description: m.description || `Prompt: ${m.pricing?.prompt ?? 'N/A'}/1k, Completion: ${m.pricing?.completion ?? 'N/A'}/1k`,
       })));
     } catch (err: unknown) {
       setError(`${t('ai_providers.openai_models_fetch_error')}: ${getErrorMessage(err)}`);
@@ -244,17 +245,40 @@ export function AiProvidersOpenAIModelsPage() {
               >
                 {t('ai_providers.openai_models_fetch_refresh')}
               </Button>
-              {form.baseUrl.includes('openrouter.ai') && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleOpenRouterFetch}
-                  loading={fetching}
-                  disabled={disableControls || saving}
-                >
-                  Fetch OpenRouter Models & Pricing
-                </Button>
-              )}
+              {(() => {
+                try {
+                  const url = new URL(form.baseUrl);
+                  const isOpenRouter = url.hostname === 'openrouter.ai' || url.hostname.endsWith('.openrouter.ai');
+                  if (isOpenRouter) {
+                    return (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleOpenRouterFetch}
+                        loading={fetching}
+                        disabled={disableControls || saving}
+                      >
+                        {t('ai_providers.openai_models_fetch_openrouter', { defaultValue: 'Fetch OpenRouter Models & Pricing' })}
+                      </Button>
+                    );
+                  }
+                } catch {
+                  if (form.baseUrl.includes('openrouter.ai')) {
+                    return (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleOpenRouterFetch}
+                        loading={fetching}
+                        disabled={disableControls || saving}
+                      >
+                        {t('ai_providers.openai_models_fetch_openrouter', { defaultValue: 'Fetch OpenRouter Models & Pricing' })}
+                      </Button>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
           </div>
           <Input

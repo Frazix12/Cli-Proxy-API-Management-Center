@@ -148,6 +148,11 @@ export function AuthFilesPage() {
       if (typeof persisted.filter === 'string') setFilter(persisted.filter);
       if (typeof persisted.search === 'string') setSearch(persisted.search);
       if (isAuthFilesSortMode(persisted.sortMode)) setSortMode(persisted.sortMode);
+      if (typeof persisted.page === 'number') setPage(persisted.page);
+      if (typeof persisted.pageSize === 'number') setPageSize(persisted.pageSize);
+      if (typeof persisted.problemOnly === 'boolean') setProblemOnly(persisted.problemOnly);
+      if (typeof persisted.disabledOnly === 'boolean') setDisabledOnly(persisted.disabledOnly);
+      if (typeof persisted.compactMode === 'boolean') setCompactMode(persisted.compactMode);
     }
     setUiStateHydrated(true);
   }, []);
@@ -209,6 +214,13 @@ export function AuthFilesPage() {
       navigate(`/auth-files/oauth-model-alias`, { state: { fromAuthFiles: true } });
   }, [navigate]);
 
+  const handleSetPageSize = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+  };
+
+  const totalPages = Math.ceil(sorted.length / pageSize);
+
   return (
     <div className="page-container">
       <header className="section-header">
@@ -259,6 +271,44 @@ export function AuthFilesPage() {
                 />
             ))}
         </div>
+
+        {/* Pagination UI */}
+        {sorted.length > pageSize && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
+                <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    disabled={page <= 1} 
+                    onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                >
+                    {t('common.previous', { defaultValue: 'Previous' })}
+                </Button>
+                <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                    {t('common.pagination_info', { current: page, total: totalPages, defaultValue: `Page ${page} of ${totalPages}` })}
+                </div>
+                <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    disabled={page >= totalPages} 
+                    onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+                >
+                    {t('common.next', { defaultValue: 'Next' })}
+                </Button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '16px' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{t('common.page_size', { defaultValue: 'Page size' })}:</span>
+                    <Select 
+                        value={pageSize} 
+                        options={[
+                            { value: 20, label: '20' },
+                            { value: 50, label: '50' },
+                            { value: 100, label: '100' },
+                            { value: 200, label: '200' }
+                        ]} 
+                        onChange={(val) => handleSetPageSize(Number(val))} 
+                    />
+                </div>
+            </div>
+        )}
 
         <OAuthExcludedCard
             disableControls={disableControls}

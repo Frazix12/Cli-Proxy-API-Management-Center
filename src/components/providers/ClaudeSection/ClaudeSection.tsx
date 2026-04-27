@@ -1,6 +1,7 @@
-import { Fragment, useMemo, type PropsWithChildren, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import iconClaude from '@/assets/icons/claude.svg';
 import type { ProviderKeyConfig } from '@/types';
@@ -15,20 +16,6 @@ import {
   getStatsForIdentity,
   hasDisableAllModelsRule,
 } from '../utils';
-
-function DesignCard({ title, extra, children }: PropsWithChildren<{title?: ReactNode, extra?: ReactNode}>) {
-    return (
-        <div className="card">
-            {(title || extra) && (
-                <header className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="title">{title}</div>
-                    {extra}
-                </header>
-            )}
-            {children}
-        </div>
-    );
-}
 
 interface ClaudeSectionProps {
   configs: ProviderKeyConfig[];
@@ -83,7 +70,7 @@ export function ClaudeSection({
   }, [configs, usageDetailsByAuthIndex, usageDetailsBySource]);
 
   return (
-    <DesignCard
+    <Card
       title={
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src={iconClaude} alt="" style={{ width: '24px', height: '24px' }} />
@@ -171,6 +158,6 @@ export function ClaudeSection({
           );
         }}
       />
-    </DesignCard>
+    </Card>
   );
 }

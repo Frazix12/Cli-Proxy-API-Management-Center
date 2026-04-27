@@ -88,6 +88,12 @@ export function ConfigPage() {
     activeTab === 'visual' &&
     (Object.values(visualValidationErrors).some(Boolean) || visualHasPayloadValidationErrors);
 
+  const containerStyle = {
+    backgroundColor: 'transparent',
+    color: 'var(--text-primary)',
+    minHeight: '100vh',
+  };
+
   const loadConfig = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -396,56 +402,78 @@ export function ConfigPage() {
 
   const pageEyebrow =
     activeTab === 'visual'
-      ? t('config_management.tabs.visual', { defaultValue: '可视化编辑' })
-      : t('config_management.tabs.source', { defaultValue: '源文件编辑' });
+      ? t('config_management.tabs.visual')
+      : t('config_management.tabs.source');
+
   const pageDescription =
     activeTab === 'visual'
       ? t('config_management.visual.notice')
       : t('config_management.description');
 
   return (
-    <div className="page-container">
-      <header className="section-header">
-        <p>{pageEyebrow}</p>
-        <h1>{t('config_management.title')}</h1>
-        <p style={{ fontSize: '16px' }}>{pageDescription}</p>
+    <div className="page-container" style={containerStyle}>
+      <header className="section-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '32px', marginBottom: '40px' }}>
+        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>{pageEyebrow}</p>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-primary)', fontSize: '40px', letterSpacing: '-0.02em', marginBottom: '12px' }}>{t('config_management.title')}</h1>
+        <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: '1.5', maxWidth: '600px' }}>{pageDescription}</p>
       </header>
 
-      <div className="stack stack-lg">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-                <Button 
-                    variant={activeTab === 'visual' ? 'primary' : 'secondary'} 
+      <div className="stack stack-xl">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', background: 'var(--bg-tertiary)', padding: '4px', borderRadius: '8px', gap: '4px' }}>
+                <button 
+                    style={{ 
+                        padding: '8px 16px', 
+                        borderRadius: '6px', 
+                        border: 'none',
+                        background: activeTab === 'visual' ? 'var(--bg-primary)' : 'transparent',
+                        color: activeTab === 'visual' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        boxShadow: activeTab === 'visual' ? 'var(--shadow-soft)' : 'none'
+                    }}
                     onClick={() => handleTabChange('visual')}
                 >
                     {t('config_management.tabs.visual')}
-                </Button>
-                <Button 
-                    variant={activeTab === 'source' ? 'primary' : 'secondary'} 
+                </button>
+                <button 
+                    style={{ 
+                        padding: '8px 16px', 
+                        borderRadius: '6px', 
+                        border: 'none',
+                        background: activeTab === 'source' ? 'var(--bg-primary)' : 'transparent',
+                        color: activeTab === 'source' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        boxShadow: activeTab === 'source' ? 'var(--shadow-soft)' : 'none'
+                    }}
                     onClick={() => handleTabChange('source')}
                 >
                     {t('config_management.tabs.source')}
-                </Button>
+                </button>
             </div>
             
-            <div style={{ display: 'flex', gap: '8px' }}>
-                <Button variant="secondary" onClick={handleReload} disabled={loading || saving}>
-                    <IconRefreshCw size={16} />
+            <div style={{ display: 'flex', gap: '12px' }}>
+                <Button variant="secondary" onClick={handleReload} disabled={loading || saving} style={{ borderRadius: '8px' }}>
+                    <IconRefreshCw size={18} />
                 </Button>
                 <Button 
                     variant="primary" 
                     onClick={handleSave} 
                     disabled={disableControls || loading || saving || !isDirty || hasVisualModeError || hasVisualValidationErrors}
+                    style={{ borderRadius: '8px', background: 'var(--primary-color)', color: 'var(--primary-contrast)', border: 'none', padding: '0 24px', fontWeight: 600 }}
                 >
                     {t('config_management.save')}
                 </Button>
             </div>
         </div>
 
-        <div className="card">
-          {error && <div className="error-box">{error}</div>}
+        <div style={{ background: 'transparent' }}>
+          {error && <div className="error-box" style={{ marginBottom: '24px' }}>{error}</div>}
           {!error && visualParseError && (
-            <div className="error-box">
+            <div className="error-box" style={{ marginBottom: '24px' }}>
               {t('config_management.visual_mode_unavailable_detail', { message: visualParseError })}
             </div>
           )}
@@ -474,7 +502,10 @@ export function ConfigPage() {
                   <Button variant="secondary" onClick={() => executeSearch('next')} disabled={!searchQuery}>
                     <IconSearch size={16} />
                   </Button>
-                  <Button variant="secondary" onClick={handlePrevMatch} disabled={!lastSearchedQuery}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--text-secondary)', padding: '0 8px' }}>
+                    {searchResults.total > 0 ? `${searchResults.current}/${searchResults.total}` : ''}
+                  </div>
+                  <Button variant="secondary" onClick={handlePrevMatch} disabled={!lastSearchedQuery || searchResults.total === 0}>
                     <IconChevronUp size={16} />
                   </Button>
                   <Button variant="secondary" onClick={handleNextMatch} disabled={!lastSearchedQuery}>

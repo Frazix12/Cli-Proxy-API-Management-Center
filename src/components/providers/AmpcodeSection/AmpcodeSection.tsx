@@ -1,5 +1,6 @@
 import { PropsWithChildren, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import iconAmp from '@/assets/icons/amp.svg';
 import iconAntigravity from '@/assets/icons/antigravity.svg';
@@ -37,6 +38,7 @@ export function AmpcodeSection({
   onEdit,
 }: AmpcodeSectionProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const showLoadingPlaceholder = loading && !config;
 
   return (
@@ -90,8 +92,8 @@ export function AmpcodeSection({
             
             {config?.modelMappings?.length ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px' }}>
-                {config.modelMappings.slice(0, 10).map((mapping) => (
-                  <span key={`${mapping.from}→${mapping.to}`} className="status-badge" style={{ fontSize: '11px', padding: '2px 8px' }}>
+                {config.modelMappings.slice(0, 10).map((mapping, index) => (
+                  <span key={`${mapping.from}→${mapping.to}-${index}`} className="status-badge" style={{ fontSize: '11px', padding: '2px 8px' }}>
                     {mapping.from} → {mapping.to}
                   </span>
                 ))}
@@ -110,21 +112,21 @@ export function AmpcodeSection({
         title={
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={iconAntigravity} alt="" style={{ width: '24px', height: '24px' }} />
-            Gemini CLI
+            {t('ai_providers.gemini_cli.title', { defaultValue: 'Gemini CLI' })}
           </span>
         }
       >
         <div className="card card-nested">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-                    Access Gemini via command line interface credentials.
+                    {t('ai_providers.gemini_cli.description', { defaultValue: 'Access Gemini via command line interface credentials.' })}
                 </p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
                     <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '600' }}>
-                        Auth Files (google_gemini_cli.json)
+                        {t('ai_providers.gemini_cli.auth_label', { defaultValue: 'Auth Files (google_gemini_cli.json)' })}
                     </div>
-                    <Button variant="secondary" size="sm" onClick={() => (window.location.hash = '#/auth-files')}>
-                        Manage
+                    <Button variant="secondary" size="sm" onClick={() => navigate('/auth-files')}>
+                        {t('ai_providers.gemini_cli.manage', { defaultValue: 'Manage' })}
                     </Button>
                 </div>
             </div>

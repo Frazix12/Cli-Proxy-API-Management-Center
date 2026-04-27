@@ -122,7 +122,6 @@ export function GeminiSection({
           );
           const headerEntries = Object.entries(item.headers || {});
           const configDisabled = hasDisableAllModelsRule(item.excludedModels);
-          const excludedModels = item.excludedModels ?? [];
           const statusData =
             statusBarCache.get(getProviderConfigKey(item, index)) || calculateStatusBarData([]);
 

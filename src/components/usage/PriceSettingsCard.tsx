@@ -54,7 +54,7 @@ export function PriceSettingsCard({
   };
 
   const handleDeleteAllPrices = () => {
-    if (window.confirm('Are you sure you want to delete all saved model prices?')) {
+    if (window.confirm(t('usage_stats.confirm_delete_all_prices', { defaultValue: 'Are you sure you want to delete all saved model prices?' }))) {
       onPricesChange({});
     }
   };
@@ -131,10 +131,17 @@ export function PriceSettingsCard({
 
           const bestMatch = matches[0];
           if (bestMatch.pricing) {
+            const promptRaw = parseFloat(bestMatch.pricing.prompt);
+            const prompt = isNaN(promptRaw) ? 0 : promptRaw;
+            const completionRaw = parseFloat(bestMatch.pricing.completion);
+            const completion = isNaN(completionRaw) ? 0 : completionRaw;
+            const requestRaw = parseFloat(bestMatch.pricing.request);
+            const cache = (isNaN(requestRaw) ? prompt : requestRaw);
+
             newPrices[localName] = {
-              prompt: parseFloat(bestMatch.pricing.prompt) * 1000000,
-              completion: parseFloat(bestMatch.pricing.completion) * 1000000,
-              cache: (parseFloat(bestMatch.pricing.request) || parseFloat(bestMatch.pricing.prompt)) * 1000000,
+              prompt: prompt * 1000000,
+              completion: completion * 1000000,
+              cache: cache * 1000000,
             };
           }
         }
@@ -162,10 +169,10 @@ export function PriceSettingsCard({
         extra={
             <div style={{ display: 'flex', gap: '8px' }}>
                 <Button variant="danger" size="sm" onClick={handleDeleteAllPrices} disabled={Object.keys(modelPrices).length === 0}>
-                    Delete All Prices
+                    {t('usage_stats.delete_all_prices', { defaultValue: 'Delete All Prices' })}
                 </Button>
                 <Button variant="secondary" size="sm" onClick={handleAutoFetchOpenRouter} loading={fetching}>
-                    Auto-fill OpenRouter Prices
+                    {t('usage_stats.auto_fill_openrouter_prices', { defaultValue: 'Auto-fill OpenRouter Prices' })}
                 </Button>
             </div>
         }

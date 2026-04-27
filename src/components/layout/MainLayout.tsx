@@ -167,8 +167,11 @@ export function MainLayout() {
   };
 
   useEffect(() => {
-    fetchConfig().catch(() => {});
-  }, [fetchConfig]);
+    fetchConfig().catch((err) => {
+      console.error('Failed to fetch config:', err);
+      showNotification(t('notification.fetch_config_failed', { defaultValue: 'Failed to fetch config' }), 'error');
+    });
+  }, [fetchConfig, showNotification, t]);
 
   const navItems = [
     { path: '/', label: t('nav.dashboard'), icon: sidebarIcons.dashboard },
@@ -184,8 +187,18 @@ export function MainLayout() {
 
   const handleRefreshAll = async () => {
     clearCache();
-    await Promise.allSettled([fetchConfig(undefined, true), triggerHeaderRefresh()]);
-    showNotification(t('notification.data_refreshed'), 'success');
+    const results = await Promise.allSettled([fetchConfig(undefined, true), triggerHeaderRefresh()]);
+    const allFulfilled = results.every((r) => r.status === 'fulfilled');
+
+    if (allFulfilled) {
+      showNotification(t('notification.data_refreshed'), 'success');
+    } else {
+      const errors = results
+        .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+        .map((r) => r.reason?.message || String(r.reason))
+        .join(', ');
+      showNotification(`${t('notification.refresh_failed')}${errors ? `: ${errors}` : ''}`, 'error');
+    }
   };
 
   return (

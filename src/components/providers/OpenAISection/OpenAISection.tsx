@@ -95,10 +95,11 @@ export function OpenAISection({
         <div className="stack stack-lg">
           {configs.map((provider, index) => {
              const stats = getOpenAIProviderStats(provider, keyStats);
-             const statusData = statusBarCache.get(getOpenAIProviderKey(provider, index)) || calculateStatusBarData([]);
+             const providerKey = getOpenAIProviderKey(provider, index);
+             const statusData = statusBarCache.get(providerKey) || calculateStatusBarData([]);
              
              return (
-                <div key={index} className="card card-nested">
+                <div key={providerKey} className="card card-nested">
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                         <div style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '600' }}>{provider.name}</div>
                         <div style={{ display: 'flex', gap: '8px' }}>

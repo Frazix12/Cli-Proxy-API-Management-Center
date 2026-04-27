@@ -98,7 +98,11 @@
 
 .card-header {
   margin-bottom: $spacing-lg;
-  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+
   .title {
     font-family: $font-display;
     font-size: 24px;
@@ -126,7 +130,11 @@
 
 // Input Component
 .input,
-textarea {
+textarea,
+input[type="text"],
+input[type="number"],
+input[type="password"],
+input[type="email"] {
   width: 100%;
   border: none;
   border-radius: $radius-md;

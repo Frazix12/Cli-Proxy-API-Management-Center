@@ -151,11 +151,11 @@ export function AuthFileCard(props: AuthFileCardProps) {
       {/* Stats */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-          <span style={{ color: 'var(--text-tertiary)' }}>S:</span>
+          <span style={{ color: 'var(--text-tertiary)' }}>{t('authFile.stats.success', { defaultValue: 'S:' })}</span>
           <span style={{ fontWeight: '600', color: 'var(--success-color)' }}>{fileStats.success}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-          <span style={{ color: 'var(--text-tertiary)' }}>F:</span>
+          <span style={{ color: 'var(--text-tertiary)' }}>{t('authFile.stats.failure', { defaultValue: 'F:' })}</span>
           <span style={{ fontWeight: '600', color: 'var(--error-color)' }}>{fileStats.failure}</span>
         </div>
       </div>
@@ -163,7 +163,7 @@ export function AuthFileCard(props: AuthFileCardProps) {
       {/* Health Bar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
-          <span>Health</span>
+          <span>{t('authFile.health', { defaultValue: 'Health' })}</span>
           <span style={{ color: 'var(--success-color)' }}>{Math.round(statusData.successRate)}%</span>
         </div>
         <ProviderStatusBar statusData={statusData} />
@@ -193,7 +193,15 @@ export function AuthFileCard(props: AuthFileCardProps) {
             <Button variant="ghost" size="sm" onClick={() => onDownload(file.name)} disabled={disableControls} title={t('common.download')}>
               <IconDownload size={18} />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => onDelete(file.name)} disabled={disableControls || deleting === file.name} style={{ color: 'var(--error-color)' }}>
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onDelete(file.name)} 
+                disabled={disableControls || deleting === file.name} 
+                style={{ color: 'var(--error-color)' }}
+                title={t('common.delete', { defaultValue: 'Delete file' })}
+                loading={deleting === file.name}
+            >
               <IconTrash2 size={18} />
             </Button>
           </>

@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;600&display=swap');
 
 :root {
-  --font-display: 'Inter', -apple-system, sans-serif; /* Fallback for Cal Sans */
+  --font-display: 'Inter', -apple-system, sans-serif;
   --font-body: 'Inter', -apple-system, sans-serif;
   --font-mono: 'Roboto Mono', monospace;
 }

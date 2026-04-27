@@ -17,7 +17,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  left: 0;
+  left: var(--sidebar-width);
   height: var(--header-height);
   background-color: var(--header-bg);
   backdrop-filter: blur(8px);
@@ -27,10 +27,16 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0 $spacing-lg;
+  transition: left $transition-normal;
   
   @media (max-width: $breakpoint-mobile) {
+    left: 0;
     justify-content: space-between;
   }
+}
+
+.sidebar-is-collapsed .main-header {
+  left: var(--sidebar-collapsed-width);
 }
 
 .header-actions {
@@ -77,6 +83,8 @@
     width: 32px;
     height: 32px;
     border-radius: $radius-sm;
+    image-rendering: -webkit-optimize-contrast;
+    object-fit: contain;
   }
   
   .sidebar-brand-title {
@@ -84,6 +92,7 @@
     font-weight: 600;
     font-size: 18px;
     letter-spacing: -0.02em;
+    color: var(--text-primary);
   }
 }
 
