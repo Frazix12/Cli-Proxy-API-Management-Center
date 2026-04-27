@@ -159,6 +159,14 @@ export function AuthFilesPage() {
 
   useEffect(() => {
     if (!uiStateHydrated) return;
+    const totalPages = Math.ceil(sorted.length / pageSize);
+    if (totalPages > 0 && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [sorted.length, pageSize, page, uiStateHydrated]);
+
+  useEffect(() => {
+    if (!uiStateHydrated) return;
     writeAuthFilesUiState({ filter, search, sortMode, page, pageSize, problemOnly, disabledOnly, compactMode });
   }, [filter, search, sortMode, page, pageSize, problemOnly, disabledOnly, compactMode, uiStateHydrated]);
 

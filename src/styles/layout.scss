@@ -37,6 +37,10 @@
 
 .sidebar-is-collapsed .main-header {
   left: var(--sidebar-collapsed-width);
+
+  @media (max-width: $breakpoint-mobile) {
+    left: 0;
+  }
 }
 
 .header-actions {

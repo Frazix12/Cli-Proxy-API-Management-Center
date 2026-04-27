@@ -165,8 +165,8 @@ export function AiProvidersOpenAIModelsPage() {
     setError('');
     try {
       const list = await modelsApi.fetchOpenRouterModels();
-      setModels(list.map((m: any) => ({
-        name: m.id || m.name,
+      setModels(list.map((m: any, index: number) => ({
+        name: m.id || m.name || `unknown-model-${index}`,
         description: m.description || `Prompt: ${m.pricing?.prompt ?? 'N/A'}/1k, Completion: ${m.pricing?.completion ?? 'N/A'}/1k`,
       })));
     } catch (err: unknown) {
